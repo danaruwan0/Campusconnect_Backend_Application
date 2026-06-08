@@ -1,6 +1,5 @@
 package com.hivex.campusconnect.service.impl;
 
-import com.hivex.campusconnect.dto.post.CreatePostRequest;
 import com.hivex.campusconnect.dto.post.PostResponse;
 import com.hivex.campusconnect.entity.Post;
 import com.hivex.campusconnect.entity.User;
@@ -8,7 +7,6 @@ import com.hivex.campusconnect.repo.PostRepository;
 import com.hivex.campusconnect.repo.UserRepository;
 import com.hivex.campusconnect.service.CloudinaryService;
 import com.hivex.campusconnect.service.PostService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,7 +19,6 @@ public class PostServiceImpl implements PostService {
 
     private final PostRepository postRepository;
     private final UserRepository userRepository;
-
     private final CloudinaryService cloudinaryService;
 
     @Override
@@ -36,16 +33,33 @@ public class PostServiceImpl implements PostService {
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
-        String imageUrl = null;
+        String mediaUrl = null;
+        String mediaType = null;
 
         if (image != null && !image.isEmpty()) {
-            imageUrl = cloudinaryService.uploadFile(image);
+
+            mediaUrl =
+                    cloudinaryService.uploadFile(image);
+
+            String contentType =
+                    image.getContentType();
+
+            if (contentType != null
+                    && contentType.startsWith("video")) {
+
+                mediaType = "VIDEO";
+
+            } else {
+
+                mediaType = "IMAGE";
+            }
         }
 
         Post post = Post.builder()
                 .title(title)
                 .content(content)
-                .imageUrl(imageUrl)
+                .mediaUrl(mediaUrl)
+                .mediaType(mediaType)
                 .user(user)
                 .build();
 
@@ -62,7 +76,8 @@ public class PostServiceImpl implements PostService {
                         .postId(post.getId())
                         .title(post.getTitle())
                         .content(post.getContent())
-                        .imageUrl(post.getImageUrl())
+                        .mediaUrl(post.getMediaUrl())
+                        .mediaType(post.getMediaType())
                         .createdAt(post.getCreatedAt())
                         .userId(post.getUser().getId())
                         .fullName(post.getUser().getFullName())

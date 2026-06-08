@@ -18,7 +18,7 @@ public class UserProfile {
     private String profileImage;
     private String coverImage;
 
-    @Column(length = 1000)
+    @Column(length = 2000)
     private String bio;
 
     private String university;
@@ -35,3 +35,4 @@ public class UserProfile {
     @JoinColumn(name = "user_id", unique = true)
     private User user;
 }
+

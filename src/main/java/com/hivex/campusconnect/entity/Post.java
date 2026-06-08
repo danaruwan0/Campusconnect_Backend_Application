@@ -23,7 +23,9 @@ public class Post {
     @Column(columnDefinition = "TEXT")
     private String content;
 
-    private String imageUrl;
+    private String mediaUrl;
+
+    private String mediaType;
 
     private LocalDateTime createdAt;
 
