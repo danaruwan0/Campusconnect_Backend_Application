@@ -1,9 +1,14 @@
-package com.hivex.campusconnect.service;
+package com.hivex.campusconnect.service.impl;
 
-import com.hivex.campusconnect.dto.RegisterRequest;
+import com.hivex.campusconnect.dto.auth.AuthResponse;
+import com.hivex.campusconnect.dto.auth.LoginRequest;
+import com.hivex.campusconnect.dto.auth.RegisterRequest;
 import com.hivex.campusconnect.entity.User;
 import com.hivex.campusconnect.repo.UserRepository;
+import com.hivex.campusconnect.security.JwtUtil;
+import com.hivex.campusconnect.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -13,6 +18,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
 
     @Override
     public User register(RegisterRequest request) {
@@ -26,7 +32,6 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = new User();
-
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setMajor(request.getMajor());
@@ -34,4 +39,22 @@ public class UserServiceImpl implements UserService {
 
         return userRepository.save(user);
     }
+
+    @Override
+    public AuthResponse login(LoginRequest request) {
+
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("Invalid password");
+        }
+
+        String token = jwtUtil.generateToken(user.getEmail());
+
+        return new AuthResponse(token);
+    }
+
+
+
 }
