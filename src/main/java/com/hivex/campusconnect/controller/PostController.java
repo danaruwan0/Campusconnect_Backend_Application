@@ -56,4 +56,7 @@ public class PostController {
                 postService.getFeed()
         );
     }
+
+//    only user all feeds get use   user prophile
+
 }

@@ -5,6 +5,9 @@ import com.hivex.campusconnect.dto.UserProfileResponse;
 import com.hivex.campusconnect.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+
 
 @RestController
 @RequestMapping("/api/profile")
@@ -32,7 +35,6 @@ public class UserProfileController {
         return profileService.getProfileImage(userId);
     }
 
-
     @GetMapping("/{userId}/name")
     public String getName(@PathVariable Long userId) {
         return profileService.getProfileName(userId);
@@ -41,5 +43,23 @@ public class UserProfileController {
     @GetMapping("/{userId}/email")
     public String getEmail(@PathVariable Long userId) {
         return profileService.getProfileEmail(userId);
+    }
+
+    // NEW
+
+    @PostMapping("/{userId}/upload-profile-image")
+    public String uploadProfileImage(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        return profileService.uploadProfileImage(userId, file);
+    }
+
+    @PostMapping("/{userId}/upload-cover-image")
+    public String uploadCoverImage(
+            @PathVariable Long userId,
+            @RequestParam("file") MultipartFile file) {
+
+        return profileService.uploadCoverImage(userId, file);
     }
 }

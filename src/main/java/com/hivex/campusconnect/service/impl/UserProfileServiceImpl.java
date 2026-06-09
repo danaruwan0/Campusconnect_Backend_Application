@@ -10,12 +10,19 @@ import com.hivex.campusconnect.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import com.hivex.campusconnect.service.CloudinaryService;
+import org.springframework.web.multipart.MultipartFile;
+
 @Service
 @RequiredArgsConstructor
-public class UserProfileServiceImpl implements UserProfileService {
+public
+
+class UserProfileServiceImpl implements UserProfileService {
 
     private final UserProfileRepository profileRepository;
     private final UserRepository userRepository;
+
+    private final CloudinaryService cloudinaryService;
 
     @Override
     public UserProfileResponse createOrUpdateProfile(Long userId, UserProfileRequest request) {
@@ -28,8 +35,10 @@ public class UserProfileServiceImpl implements UserProfileService {
 
         profile.setUser(user);
 
-        profile.setProfileImage(request.getProfileImage());
-        profile.setCoverImage(request.getCoverImage());
+//        profile.setProfileImage(request.getProfileImage());
+//        profile.setCoverImage(request.getCoverImage());
+
+
         profile.setBio(request.getBio());
         profile.setUniversity(request.getUniversity());
         profile.setBatchYear(request.getBatchYear());
@@ -103,6 +112,55 @@ public class UserProfileServiceImpl implements UserProfileService {
         res.setLocation(profile.getLocation());
 
         return res;
+    }
+
+    @Override
+    public String uploadProfileImage(Long userId, MultipartFile file) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> {
+
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+
+                    return newProfile;
+                });
+
+        String imageUrl = cloudinaryService.uploadFile(file);
+
+        profile.setProfileImage(imageUrl);
+
+        profileRepository.save(profile);
+
+        return imageUrl;
+    }
+
+
+    @Override
+    public String uploadCoverImage(Long userId, MultipartFile file) {
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        UserProfile profile = profileRepository.findByUserId(userId)
+                .orElseGet(() -> {
+
+                    UserProfile newProfile = new UserProfile();
+                    newProfile.setUser(user);
+
+                    return newProfile;
+                });
+
+        String imageUrl = cloudinaryService.uploadFile(file);
+
+        profile.setCoverImage(imageUrl);
+
+        profileRepository.save(profile);
+
+        return imageUrl;
     }
 
 
