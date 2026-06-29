@@ -55,6 +55,10 @@ public class UserProfileController {
         return profileService.uploadProfileImage(userId, file);
     }
 
+//
+//    POST http://localhost:8081/api/profile/{{userId}}/upload-cover-image?
+//    file={{$random.alphanumeric(8)}}
+
     @PostMapping("/{userId}/upload-cover-image")
     public String uploadCoverImage(
             @PathVariable Long userId,

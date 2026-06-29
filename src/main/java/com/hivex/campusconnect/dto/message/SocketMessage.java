@@ -5,9 +5,17 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MessageRequest {
+public class SocketMessage {
 
     private Long senderId;
+
     private Long receiverId;
+
+    private String senderName;
+
+
+    private String senderImage;   // <-- add
+
     private String content;
+
 }

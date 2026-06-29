@@ -5,9 +5,11 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MessageRequest {
+public class TypingStatus {
 
     private Long senderId;
+
     private Long receiverId;
-    private String content;
+
+    private boolean typing;
 }

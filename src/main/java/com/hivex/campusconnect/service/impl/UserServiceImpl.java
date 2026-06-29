@@ -12,6 +12,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.hivex.campusconnect.dto.search_user.UserSearchResponse;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -46,15 +49,44 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new BadCredentialsException("Invalid password");
+        if (!passwordEncoder.matches(
+                request.getPassword(),
+                user.getPassword())) {
+
+            throw new BadCredentialsException(
+                    "Invalid password");
         }
 
-        String token = jwtUtil.generateToken(user.getEmail());
+        String token =
+                jwtUtil.generateToken(
+                        user.getEmail());
 
-        return new AuthResponse(token);
+        return new AuthResponse(
+                token,
+                user.getId(),
+                user.getFullName(),
+                user.getEmail()
+        );
     }
 
+
+    @Override
+    public List<UserSearchResponse> searchUsers(
+            String keyword) {
+
+        return userRepository
+                .searchUsers(keyword)
+                .stream()
+                .map(user ->
+                        UserSearchResponse.builder()
+                                .userId(user.getId())
+                                .fullName(user.getFullName())
+                                .email(user.getEmail())
+                                .major(user.getMajor())
+                                .build()
+                )
+                .toList();
+    }
 
 
 }

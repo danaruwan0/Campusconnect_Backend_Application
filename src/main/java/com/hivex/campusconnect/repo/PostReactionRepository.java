@@ -12,4 +12,6 @@ public interface PostReactionRepository
 
     Optional<PostReaction>
     findByPostIdAndUserId(Long postId, Long userId);
+
+    void deleteByPostIdAndUserId(Long postId, Long userId);
 }
