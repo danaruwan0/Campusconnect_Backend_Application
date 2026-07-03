@@ -24,32 +24,75 @@ public interface MessageRepository
             Long senderId
     );
 
+//    @Query("""
+//            SELECT m FROM Message m
+//            WHERE
+//            (m.sender.id = :user1
+//            AND m.receiver.id = :user2)
+//
+//            OR
+//
+//            (m.sender.id = :user2
+//            AND m.receiver.id = :user1)
+//
+//            ORDER BY m.sentAt ASC
+//            """)
+//    List<Message> getConversation(
+//            Long user1,
+//            Long user2);
+
+    //new
     @Query("""
-            SELECT m FROM Message m
-            WHERE
-            (m.sender.id = :user1
-            AND m.receiver.id = :user2)
-
-            OR
-
-            (m.sender.id = :user2
-            AND m.receiver.id = :user1)
-
-            ORDER BY m.sentAt ASC
-            """)
+SELECT m FROM Message m
+WHERE
+(
+    m.sender.id = :user1
+    AND m.receiver.id = :user2
+    AND m.deletedBySender = false
+    AND m.deletedForEveryone = false
+)
+OR
+(
+    m.sender.id = :user2
+    AND m.receiver.id = :user1
+    AND m.deletedByReceiver = false
+    AND m.deletedForEveryone = false
+)
+ORDER BY m.sentAt ASC
+""")
     List<Message> getConversation(
             Long user1,
-            Long user2);
+            Long user2
+    );
 
 
+//    @Query("""
+//       SELECT m FROM Message m
+//       WHERE m.sender.id = :userId
+//       OR m.receiver.id = :userId
+//       ORDER BY m.sentAt DESC
+//       """)
+//    List<Message> findAllUserMessages(
+//            Long userId);
+
+    //new
     @Query("""
-       SELECT m FROM Message m
-       WHERE m.sender.id = :userId
-       OR m.receiver.id = :userId
-       ORDER BY m.sentAt DESC
-       """)
-    List<Message> findAllUserMessages(
-            Long userId);
+SELECT m FROM Message m
+WHERE
+(
+    m.sender.id = :userId
+    AND m.deletedBySender = false
+    AND m.deletedForEveryone = false
+)
+OR
+(
+    m.receiver.id = :userId
+    AND m.deletedByReceiver = false
+    AND m.deletedForEveryone = false
+)
+ORDER BY m.sentAt DESC
+""")
+    List<Message> findAllUserMessages(Long userId);
 
 
     @Query("""
@@ -77,4 +120,35 @@ public interface MessageRepository
             Long receiverId,
             Long senderId
     );
+
+
+
+    //new add
+    @Modifying
+    @Transactional
+    @Query("""
+UPDATE Message m
+SET m.deletedBySender = true
+WHERE m.id = :messageId
+""")
+    void deleteForMeSender(Long messageId);
+
+
+    @Modifying
+    @Transactional
+    @Query("""
+UPDATE Message m
+SET m.deletedByReceiver = true
+WHERE m.id = :messageId
+""")
+    void deleteForMeReceiver(Long messageId);
+
+    @Modifying
+    @Transactional
+    @Query("""
+UPDATE Message m
+SET m.deletedForEveryone = true
+WHERE m.id = :messageId
+""")
+    void deleteForEveryone(Long messageId);
 }

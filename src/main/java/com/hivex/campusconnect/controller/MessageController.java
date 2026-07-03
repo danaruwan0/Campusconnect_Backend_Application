@@ -95,4 +95,33 @@ public class MessageController {
     }
 
 
+    //new add
+    @PutMapping("/delete/me/{messageId}/{userId}")
+    public void deleteForMe(
+
+            @PathVariable Long messageId,
+
+            @PathVariable Long userId){
+
+        messageService.deleteForMe(
+                messageId,
+                userId);
+
+    }
+
+    @PutMapping("/delete/everyone/{messageId}/{userId}")
+    public void deleteForEveryone(
+
+            @PathVariable Long messageId,
+
+            @PathVariable Long userId){
+
+        messageService.deleteForEveryone(
+                messageId,
+                userId);
+
+    }
+
+
+
 }

@@ -23,10 +23,18 @@ public class MessageResponse {
 
     private boolean readStatus;
 
-    //new add
+
     private String senderImage;
 
     private String receiverImage;
+
+    //new add
+    private boolean deletedBySender;
+
+    private boolean deletedByReceiver;
+
+    private boolean deletedForEveryone;
+
 
 
 }

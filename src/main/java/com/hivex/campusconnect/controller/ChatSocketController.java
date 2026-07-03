@@ -8,6 +8,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
+import com.hivex.campusconnect.dto.message.TypingStatus;
+
+import com.hivex.campusconnect.dto.message.SeenStatus;
 
 @Controller
 @RequiredArgsConstructor
@@ -63,6 +66,47 @@ public class ChatSocketController {
                 "/topic/online",
                 status
         );
+    }
+
+
+    @MessageMapping("/typing")
+    public void typing(TypingStatus status) {
+
+        System.out.println("Typing Event Received");
+        System.out.println(status.getSenderId());
+        System.out.println(status.getReceiverId());
+
+
+        messagingTemplate.convertAndSend(
+                "/topic/typing/" + status.getReceiverId(),
+                status
+        );
+
+    }
+
+    @MessageMapping("/stopTyping")
+    public void stopTyping(TypingStatus status) {
+
+        status.setTyping(false);
+
+        messagingTemplate.convertAndSend(
+                "/topic/typing/" + status.getReceiverId(),
+                status
+        );
+
+    }
+
+    @MessageMapping("/seen")
+    public void seen(SeenStatus status) {
+
+        messagingTemplate.convertAndSend(
+
+                "/topic/seen/" + status.getSenderId(),
+
+                status
+
+        );
+
     }
 
 }

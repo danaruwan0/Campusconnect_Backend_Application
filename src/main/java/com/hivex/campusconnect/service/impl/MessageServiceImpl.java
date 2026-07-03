@@ -29,6 +29,7 @@ public class MessageServiceImpl
 
     private final UserProfileRepository profileRepository;
 
+
     @Override
     public MessageResponse sendMessage(
             MessageRequest request) {
@@ -132,8 +133,17 @@ public class MessageServiceImpl
         res.setSenderImage(senderImage);
         res.setReceiverImage(receiverImage);
 
+        // Delete status
+        res.setDeletedBySender(message.isDeletedBySender());
+        res.setDeletedByReceiver(message.isDeletedByReceiver());
+        res.setDeletedForEveryone(message.isDeletedForEveryone());
+
         return res;
     }
+
+
+
+
 
     @Override
     public List<MessageResponse> getConversation(
@@ -216,7 +226,7 @@ public class MessageServiceImpl
                 chat.setProfileImage(profileImage);
 
                 chat.setOnline(false);
-                
+
 
                 Long unread =
                         messageRepository
@@ -259,5 +269,44 @@ public class MessageServiceImpl
         }
 
         messageRepository.delete(message);
+    }
+
+    @Override
+    public void deleteForMe(Long messageId, Long userId) {
+
+        Message message =
+                messageRepository.findById(messageId)
+                        .orElseThrow();
+
+        if(message.getSender().getId().equals(userId)){
+
+            messageRepository.deleteForMeSender(messageId);
+
+        }else{
+
+            messageRepository.deleteForMeReceiver(messageId);
+
+        }
+
+    }
+
+    @Override
+    public void deleteForEveryone(
+            Long messageId,
+            Long userId) {
+
+        Message message =
+                messageRepository.findById(messageId)
+                        .orElseThrow();
+
+        if(!message.getSender().getId().equals(userId)){
+
+            throw new RuntimeException(
+                    "Only sender can delete for everyone");
+
+        }
+
+        messageRepository.deleteForEveryone(messageId);
+
     }
 }

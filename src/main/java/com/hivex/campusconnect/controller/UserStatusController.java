@@ -4,6 +4,8 @@ import com.hivex.campusconnect.service.OnlineUsers;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Set;
+
 @RestController
 @RequestMapping("/api/status")
 @RequiredArgsConstructor
@@ -18,5 +20,11 @@ public class UserStatusController {
 
         return onlineUsers.isOnline(
                 userId);
+    }
+
+    @GetMapping("/online-users")
+    public Set<Long> getOnlineUsers() {
+
+        return onlineUsers.getAllOnlineUsers();
     }
 }

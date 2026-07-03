@@ -31,4 +31,12 @@ public class Message {
     private LocalDateTime sentAt;
 
     private boolean readStatus;
+
+
+    //new add
+    private boolean deletedBySender = false;
+
+    private boolean deletedByReceiver = false;
+
+    private boolean deletedForEveryone = false;
 }

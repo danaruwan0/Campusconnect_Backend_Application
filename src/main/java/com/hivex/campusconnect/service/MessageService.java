@@ -41,4 +41,15 @@ public interface MessageService {
     );
 
 
+
+    //new add
+    void deleteForMe(
+            Long messageId,
+            Long userId);
+
+    void deleteForEveryone(
+            Long messageId,
+            Long userId);
+
+
 }
