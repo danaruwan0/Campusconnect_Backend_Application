@@ -3,11 +3,17 @@ package com.hivex.campusconnect.service;
 import com.hivex.campusconnect.dto.auth.OtpData;
 import com.hivex.campusconnect.dto.auth.RegisterRequest;
 import com.hivex.campusconnect.entity.User;
+import com.hivex.campusconnect.entity.UserProfile;
+import com.hivex.campusconnect.repo.UserProfileRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+//new import
+import com.hivex.campusconnect.dto.auth.AuthResponse;
+import com.hivex.campusconnect.security.JwtUtil;
 
 
 import java.util.HashMap;
@@ -19,6 +25,10 @@ import com.hivex.campusconnect.repo.UserRepository;
 @Service
 public class OtpService {
 
+    //jwt part
+    @Autowired
+    private JwtUtil jwtUtil;
+
     @Autowired
     private JavaMailSender mailSender;
 
@@ -28,10 +38,17 @@ public class OtpService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
+    //new temp prophle  create
+    @Autowired
+    private UserProfileRepository profileRepository;
+
+
+
     private final Map<String, OtpData> otpStorage = new HashMap<>();
     private final Map<String, RegisterRequest> pendingUsers = new HashMap<>();
 
-    private static final long OTP_TIME = 2 * 60 * 1000; // 2 min
+    private static final long OTP_TIME = 5 * 60 * 1000; // 2 min
 
     // STEP 1: OTP SEND
     public String sendOtp(RegisterRequest request) {
@@ -55,7 +72,7 @@ public class OtpService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(request.getEmail());
         message.setSubject("OTP Verification");
-        message.setText("Your OTP is: " + otp + " (valid 2 minutes)");
+        message.setText("Your OTP is: " + otp + " (valid 5 minutes)");
 
         mailSender.send(message);
 
@@ -63,25 +80,27 @@ public class OtpService {
     }
 
     // STEP 2: OTP VERIFY + USER SAVE
-    public String verifyOtpAndRegister(String email, String otp) {
+
+    //chane meth line 1
+    public AuthResponse verifyOtpAndRegister(String email, String otp) {
 
         OtpData data = otpStorage.get(email);
         RegisterRequest req = pendingUsers.get(email);
 
         if (data == null || req == null) {
-            return "Invalid request";
+            throw new RuntimeException("Invalid request");
         }
 
         // expire check
         if (System.currentTimeMillis() > data.expiryTime) {
             otpStorage.remove(email);
             pendingUsers.remove(email);
-            return "OTP expired";
+            throw new RuntimeException("OTP expired");
         }
 
         // otp check
         if (!data.otp.equals(otp)) {
-            return "Wrong OTP";
+            throw new RuntimeException("Wrong OTP");
         }
 
         // USER SAVE NOW
@@ -91,12 +110,34 @@ public class OtpService {
         user.setMajor(req.getMajor());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
+
+// DEFAULT PROFILE CREATE
+        UserProfile profile = new UserProfile();
+        profile.setUser(savedUser);
+
+        profile.setBio(
+                "Undergraduate student passionate about software development, web technologies, and AI applications."
+        );
+
+        profile.setBatchYear("2025");
+
+        profileRepository.save(profile);
 
         otpStorage.remove(email);
         pendingUsers.remove(email);
 
-        return "Registration successful";
+// AUTO LOGIN TOKEN
+        String token = jwtUtil.generateToken(
+                savedUser.getEmail()
+        );
+
+        return new AuthResponse(
+                token,
+                savedUser.getId(),
+                savedUser.getFullName(),
+                savedUser.getEmail()
+        );
     }
 
 
@@ -122,12 +163,16 @@ public class OtpService {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setTo(email);
         message.setSubject("OTP Verification");
-        message.setText("Your new OTP is: " + otp + " (valid 2 minutes)");
+        message.setText("Your new OTP is: " + otp + " (valid 5 minutes)");
 
         mailSender.send(message);
 
         return "New OTP sent successfully";
     }
+
+
+
+
 }
 
 

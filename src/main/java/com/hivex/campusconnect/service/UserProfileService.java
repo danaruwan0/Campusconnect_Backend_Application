@@ -20,4 +20,6 @@ public interface UserProfileService {
     String uploadProfileImage(Long userId, MultipartFile file);
 
     String uploadCoverImage(Long userId, MultipartFile file);
+
+    //metha get prophile meger eka enna oni neda
 }

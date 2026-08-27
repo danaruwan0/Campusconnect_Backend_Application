@@ -8,3 +8,4 @@ public interface PostShareRepository
 
     long countByPostId(Long postId);
 }
+

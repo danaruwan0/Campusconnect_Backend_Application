@@ -53,4 +53,23 @@ public class PostResponse {
 
     private List<CommentResponse> comments;
 
+
+    //new add
+
+    private boolean shared;
+
+    private Long originalPostId;
+
+    private String originalPostUser;
+
+    private String originalPostContent;
+
+    private String originalPostTitle;
+
+    private String originalPostMediaUrl;
+
+    private String originalPostMediaType;
+
+    private String originalProfileImage;
+
 }

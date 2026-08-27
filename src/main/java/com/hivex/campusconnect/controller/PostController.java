@@ -130,6 +130,8 @@ public class PostController {
 
 
 
+
+
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<PostResponse>> getUserPosts(
             @PathVariable Long userId){
@@ -137,6 +139,32 @@ public class PostController {
         return ResponseEntity.ok(
                 postService.getUserPosts(userId)
         );
+    }
+
+
+    @DeleteMapping("/{postId}")
+    public ResponseEntity<String> deletePost(
+            @PathVariable Long postId,
+            @RequestParam Long userId) {
+
+        postService.deletePost(postId, userId);
+
+        return ResponseEntity.ok("Post deleted successfully");
+    }
+
+
+    @PostMapping("/{postId}/share")
+    public ResponseEntity<String> sharePost(
+
+            @PathVariable Long postId,
+
+            @RequestParam Long userId
+
+    ) {
+
+        postService.sharePost(postId, userId);
+
+        return ResponseEntity.ok("Post shared successfully");
     }
 
 }

@@ -23,4 +23,8 @@ public class UserProfileResponse {
     private String website;
     private String phone;
     private String location;
+
+   //new
+    private String major;
+
 }

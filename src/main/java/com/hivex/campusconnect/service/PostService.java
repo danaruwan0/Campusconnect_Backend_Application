@@ -23,6 +23,7 @@ public interface PostService {
 
     List<PostResponse> getFeed();
 
+
     PostComment addComment(
             Long postId,
             Long userId,
@@ -46,6 +47,11 @@ public interface PostService {
 
 
     List<PostResponse> getUserPosts(Long userId);
+
+
+    void deletePost(Long postId, Long userId);
+
+    void sharePost(Long postId, Long userId);
 
 
 }

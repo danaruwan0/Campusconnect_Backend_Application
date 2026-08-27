@@ -39,4 +39,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> searchUsers(
             @Param("keyword") String keyword
     );
+
+
+    //new add user reposity this code 30
+    List<User> findAll();
 }

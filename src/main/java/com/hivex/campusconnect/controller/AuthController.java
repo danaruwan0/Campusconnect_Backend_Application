@@ -32,7 +32,9 @@ public class AuthController {
 
     // verify OTP → save user
     @PostMapping("/verify-otp")
-    public String verifyOtp(@RequestBody OtpRequest request) {
+    public AuthResponse verifyOtp(
+            @RequestBody OtpRequest request) {
+
         return otpService.verifyOtpAndRegister(
                 request.getEmail(),
                 request.getOtp()

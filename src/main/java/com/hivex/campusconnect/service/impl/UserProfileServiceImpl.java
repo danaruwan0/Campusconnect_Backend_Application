@@ -30,6 +30,13 @@ class UserProfileServiceImpl implements UserProfileService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
+        // User table update
+        user.setFullName(request.getFullName());
+        user.setMajor(request.getMajor());
+
+        userRepository.save(user);
+
+
         UserProfile profile = profileRepository.findByUserId(userId)
                 .orElse(new UserProfile());
 
@@ -98,6 +105,7 @@ class UserProfileServiceImpl implements UserProfileService {
         res.setId(profile.getId());
         res.setFullName(user.getFullName());
         res.setEmail(user.getEmail());
+        res.setMajor(user.getMajor());   // <-- ADD THIS
 
         res.setProfileImage(profile.getProfileImage());
         res.setCoverImage(profile.getCoverImage());
