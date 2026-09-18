@@ -1,6 +1,5 @@
 package com.hivex.campusconnect.controller;
 
-
 import com.hivex.campusconnect.dto.notification.NotificationResponse;
 import com.hivex.campusconnect.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -17,19 +16,21 @@ public class NotificationController {
 
     private final NotificationService notificationService;
 
+
     /**
-     * Get All Notifications of User
+     * Get All Notifications
      */
     @GetMapping("/{userId}")
-    public ResponseEntity<List<NotificationResponse>> getNotifications(
+    public ResponseEntity<List<NotificationResponse>>
+    getNotifications(
             @PathVariable Long userId
     ) {
 
         return ResponseEntity.ok(
                 notificationService.getNotifications(userId)
         );
-
     }
+
 
     /**
      * Get Unread Notification Count
@@ -42,8 +43,8 @@ public class NotificationController {
         return ResponseEntity.ok(
                 notificationService.getUnreadCount(userId)
         );
-
     }
+
 
     /**
      * Mark Notification As Read
@@ -55,8 +56,28 @@ public class NotificationController {
 
         notificationService.markAsRead(notificationId);
 
-        return ResponseEntity.ok("Notification marked as read.");
-
+        return ResponseEntity.ok(
+                "Notification marked as read."
+        );
     }
 
+
+    /**
+     * Delete Notification
+     */
+    @DeleteMapping("/{notificationId}/{userId}")
+    public ResponseEntity<String> deleteNotification(
+            @PathVariable Long notificationId,
+            @PathVariable Long userId
+    ) {
+
+        notificationService.deleteNotification(
+                notificationId,
+                userId
+        );
+
+        return ResponseEntity.ok(
+                "Notification deleted."
+        );
+    }
 }

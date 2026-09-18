@@ -161,4 +161,147 @@ public class NotificationServiceImpl
 
     }
 
+    /**
+     * Create Follow Notification
+     */
+    @Override
+    public void createFollowNotification(
+            Long followerId,
+            Long followingId
+    ) {
+
+        User follower =
+                userRepository.findById(followerId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Follower user not found"
+                                ));
+
+        User following =
+                userRepository.findById(followingId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Following user not found"
+                                ));
+
+        Notification notification =
+                new Notification();
+
+        // Person receiving notification
+        notification.setReceiver(following);
+
+        // Person who followed
+        notification.setSender(follower);
+
+        notification.setTitle("New Follower");
+
+        notification.setMessage(
+                follower.getFullName()
+                        + " started following you"
+        );
+
+        notification.setType("FOLLOW");
+
+        // Follower ID
+        notification.setReferenceId(
+                follower.getId()
+        );
+
+        notification.setReadStatus(false);
+
+        notification.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        notificationRepository.save(notification);
+    }
+
+
+    /**
+     * Delete Notification
+     */
+    @Override
+    public void deleteNotification(
+            Long notificationId,
+            Long userId
+    ) {
+
+        Notification notification =
+                notificationRepository
+                        .findById(notificationId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Notification not found"
+                                ));
+
+        // Security check
+        if (!notification.getReceiver()
+                .getId()
+                .equals(userId)) {
+
+            throw new RuntimeException(
+                    "You cannot delete this notification"
+            );
+        }
+
+        notificationRepository.delete(notification);
+    }
+
+
+
+    @Override
+    public void createUnfollowNotification(
+            Long followerId,
+            Long followingId
+    ) {
+
+        User follower =
+                userRepository.findById(followerId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Follower user not found"
+                                ));
+
+        User following =
+                userRepository.findById(followingId)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Following user not found"
+                                ));
+
+        Notification notification =
+                new Notification();
+
+        // Person receiving notification
+        notification.setReceiver(following);
+
+        // Person who unfollowed
+        notification.setSender(follower);
+
+        notification.setTitle("Unfollowed You");
+
+        notification.setMessage(
+                follower.getFullName()
+                        + " unfollowed you"
+        );
+
+        notification.setType("UNFOLLOW");
+
+        notification.setReferenceId(
+                follower.getId()
+        );
+
+        notification.setReadStatus(false);
+
+        notification.setCreatedAt(
+                LocalDateTime.now()
+        );
+
+        notificationRepository.save(notification);
+    }
+
+
+
+
+
 }

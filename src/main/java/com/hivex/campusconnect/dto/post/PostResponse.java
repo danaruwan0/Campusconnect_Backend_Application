@@ -15,26 +15,6 @@ import java.util.List;
 @NoArgsConstructor
 public class PostResponse {
 
-//    private Long postId;
-//
-//    private String title;
-//
-//    private String content;
-//
-//    private String mediaUrl;
-//
-//    private String mediaType;
-//
-//    private LocalDateTime createdAt;
-//
-//    private Long userId;
-//
-//    private String fullName;
-//
-//    private long reactionCount;
-//    private long commentCount;
-//    private long shareCount;
-
     private Long postId;
     private String title;
     private String content;
@@ -52,9 +32,6 @@ public class PostResponse {
     private long shareCount;
 
     private List<CommentResponse> comments;
-
-
-    //new add
 
     private boolean shared;
 

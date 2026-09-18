@@ -11,6 +11,12 @@ public interface NotificationRepository
 
     long countByReceiverIdAndReadStatusFalse(Long receiverId);
 
+    //add dalate 26/8/27
+    void deleteByIdAndReceiverId(
+            Long notificationId,
+            Long receiverId
+    );
+
 
 
 }

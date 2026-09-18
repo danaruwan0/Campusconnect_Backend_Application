@@ -1,14 +1,15 @@
 package com.hivex.campusconnect.service.impl;
 
+import com.hivex.campusconnect.dto.follow.FollowUserResponse;
 import com.hivex.campusconnect.entity.User;
 import com.hivex.campusconnect.entity.UserFollow;
 import com.hivex.campusconnect.repo.UserFollowRepository;
 import com.hivex.campusconnect.repo.UserRepository;
 import com.hivex.campusconnect.service.FollowService;
+import com.hivex.campusconnect.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.hivex.campusconnect.dto.follow.FollowUserResponse;
 import java.util.List;
 
 @Service
@@ -16,19 +17,41 @@ import java.util.List;
 public class FollowServiceImpl
         implements FollowService {
 
+
     private final UserRepository userRepository;
+
     private final UserFollowRepository followRepository;
+
+    private final NotificationService notificationService;
+
+
+    /*
+     * =========================================================
+     * FOLLOW USER
+     * =========================================================
+     */
 
     @Override
     public String followUser(
             Long followerId,
-            Long followingId) {
+            Long followingId
+    ) {
+
+        /*
+         * Cannot follow yourself
+         */
 
         if (followerId.equals(followingId)) {
+
             throw new RuntimeException(
                     "Cannot follow yourself"
             );
         }
+
+
+        /*
+         * Check already following
+         */
 
         if (followRepository
                 .findByFollowerIdAndFollowingId(
@@ -40,38 +63,108 @@ public class FollowServiceImpl
             return "Already following";
         }
 
+
+        /*
+         * Find follower
+         */
+
         User follower =
                 userRepository.findById(followerId)
                         .orElseThrow(() ->
-                                new RuntimeException("User not found"));
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
+
+
+        /*
+         * Find following user
+         */
 
         User following =
                 userRepository.findById(followingId)
                         .orElseThrow(() ->
-                                new RuntimeException("User not found"));
+                                new RuntimeException(
+                                        "User not found"
+                                )
+                        );
 
-        UserFollow follow = UserFollow.builder()
-                .follower(follower)
-                .following(following)
-                .build();
+
+        /*
+         * Create follow relationship
+         */
+
+        UserFollow follow =
+                UserFollow.builder()
+                        .follower(follower)
+                        .following(following)
+                        .build();
+
 
         followRepository.save(follow);
 
-        return "Followed successfully";
-    }
 
-    @Override
-    public String unfollowUser(
-            Long followerId,
-            Long followingId) {
+        /*
+         * Create follow notification
+         */
 
-        followRepository.deleteByFollowerIdAndFollowingId(
+        notificationService.createFollowNotification(
                 followerId,
                 followingId
         );
 
+
+        return "Followed successfully";
+    }
+
+
+    /*
+     * =========================================================
+     * UNFOLLOW USER
+     * =========================================================
+     */
+
+    @Override
+    public String unfollowUser(
+            Long followerId,
+            Long followingId
+    ) {
+
+        UserFollow follow =
+                followRepository
+                        .findByFollowerIdAndFollowingId(
+                                followerId,
+                                followingId
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Follow relationship not found"
+                                )
+                        );
+
+
+        followRepository.delete(follow);
+
+
+        /*
+         * Create unfollow notification
+         */
+
+        notificationService.createUnfollowNotification(
+                followerId,
+                followingId
+        );
+
+
         return "Unfollowed successfully";
     }
+
+
+    /*
+     * =========================================================
+     * GET FOLLOWERS COUNT
+     * =========================================================
+     */
 
     @Override
     public long getFollowersCount(Long userId) {
@@ -80,17 +173,18 @@ public class FollowServiceImpl
                 .countByFollowingId(userId);
     }
 
-//    @Override
-//    public long getFollowingCount(Long userId) {
-//
-//        return followRepository
-//                .countByFollowerId(userId);
-//    }
+
+    /*
+     * =========================================================
+     * CHECK FOLLOWING STATUS
+     * =========================================================
+     */
 
     @Override
     public boolean isFollowing(
             Long followerId,
-            Long followingId) {
+            Long followingId
+    ) {
 
         return followRepository
                 .findByFollowerIdAndFollowingId(
@@ -101,9 +195,16 @@ public class FollowServiceImpl
     }
 
 
+    /*
+     * =========================================================
+     * GET FOLLOWERS
+     * =========================================================
+     */
+
     @Override
     public List<FollowUserResponse> getFollowers(
-            Long userId) {
+            Long userId
+    ) {
 
         return followRepository
                 .findByFollowingId(userId)
@@ -124,9 +225,17 @@ public class FollowServiceImpl
                 .toList();
     }
 
+
+    /*
+     * =========================================================
+     * GET FOLLOWING
+     * =========================================================
+     */
+
     @Override
     public List<FollowUserResponse> getFollowing(
-            Long userId) {
+            Long userId
+    ) {
 
         return followRepository
                 .findByFollowerId(userId)
@@ -147,36 +256,52 @@ public class FollowServiceImpl
                 .toList();
     }
 
+
+    /*
+     * =========================================================
+     * GET SUGGESTIONS
+     *
+     * Profile image and major are already fetched
+     * from User + UserProfile by UserRepository.
+     *
+     * No extra mapping is required here.
+     * =========================================================
+     */
+
     @Override
     public List<FollowUserResponse> getSuggestions(
-            Long userId) {
+            Long userId
+    ) {
 
         return userRepository
-                .getSuggestedUsers(userId)
-                .stream()
-                .map(user ->
-                        FollowUserResponse.builder()
-                                .userId(user.getId())
-                                .fullName(user.getFullName())
-                                .email(user.getEmail())
-                                .build()
-                )
-                .toList();
+                .getSuggestedUsers(userId);
     }
 
-//    @Override
-//    public Long getFollowerCount(Long userId) {
-//        return 0;
-//    }
 
+    /*
+     * =========================================================
+     * GET FOLLOWER COUNT
+     * =========================================================
+     */
 
     @Override
     public Long getFollowerCount(Long userId) {
-        return followRepository.countByFollowingId(userId);
+
+        return followRepository
+                .countByFollowingId(userId);
     }
+
+
+    /*
+     * =========================================================
+     * GET FOLLOWING COUNT
+     * =========================================================
+     */
 
     @Override
     public Long getFollowingCount(Long userId) {
-        return followRepository.countByFollowerId(userId);
+
+        return followRepository
+                .countByFollowerId(userId);
     }
 }
