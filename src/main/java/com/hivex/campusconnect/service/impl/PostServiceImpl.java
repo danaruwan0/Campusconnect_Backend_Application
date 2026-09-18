@@ -38,8 +38,13 @@ public class PostServiceImpl implements PostService {
     private final PostCommentRepository commentRepository;
     private final PostReactionRepository reactionRepository;
 
-    //new line
+    // new line
     private final PostShareRepository postShareRepository;
+
+
+    // =========================================================
+    // CREATE POST
+    // =========================================================
 
     @Override
     public Post createPost(
@@ -84,33 +89,52 @@ public class PostServiceImpl implements PostService {
         return postRepository.save(post);
     }
 
+
+    // =========================================================
+    // GET FEED
+    // =========================================================
+
     @Override
-    public List<PostResponse> getFeed() {
+    public List<PostResponse> getFeed(Long userId) {
 
         return postRepository
                 .findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(post -> {
 
+                    // -----------------------------------------
+                    // Post profile image
+                    // -----------------------------------------
+
                     String postProfileImage = userProfileRepository
                             .findByUserId(post.getUser().getId())
                             .map(UserProfile::getProfileImage)
                             .orElse(null);
+
+
+                    // -----------------------------------------
+                    // Comments
+                    // -----------------------------------------
 
                     List<CommentResponse> comments = commentRepository
                             .findByPostIdOrderByCreatedAtDesc(post.getId())
                             .stream()
                             .map(comment -> {
 
-                                String commentProfileImage = userProfileRepository
-                                        .findByUserId(comment.getUser().getId())
-                                        .map(UserProfile::getProfileImage)
-                                        .orElse(null);
+                                String commentProfileImage =
+                                        userProfileRepository
+                                                .findByUserId(
+                                                        comment.getUser().getId()
+                                                )
+                                                .map(UserProfile::getProfileImage)
+                                                .orElse(null);
 
                                 return CommentResponse.builder()
                                         .id(comment.getId())
                                         .userId(comment.getUser().getId())
-                                        .fullName(comment.getUser().getFullName())
+                                        .fullName(
+                                                comment.getUser().getFullName()
+                                        )
                                         .profileImage(commentProfileImage)
                                         .comment(comment.getComment())
                                         .createdAt(comment.getCreatedAt())
@@ -119,7 +143,26 @@ public class PostServiceImpl implements PostService {
                             })
                             .toList();
 
+
+                    // -----------------------------------------
+                    // Current user's reaction
+                    // -----------------------------------------
+
+                    String userReaction = reactionRepository
+                            .findByPostIdAndUserId(
+                                    post.getId(),
+                                    userId
+                            )
+                            .map(PostReaction::getReactionType)
+                            .orElse(null);
+
+
+                    // -----------------------------------------
+                    // Build PostResponse
+                    // -----------------------------------------
+
                     return PostResponse.builder()
+
                             .postId(post.getId())
                             .title(post.getTitle())
                             .content(post.getContent())
@@ -131,19 +174,36 @@ public class PostServiceImpl implements PostService {
                             .fullName(post.getUser().getFullName())
                             .profileImage(postProfileImage)
 
+                            // Reaction count
                             .reactionCount(
-                                    reactionRepository.countByPostId(post.getId())
+                                    reactionRepository.countByPostId(
+                                            post.getId()
+                                    )
                             )
+
+                            // Current user's reaction
+                            .userReaction(userReaction)
+
+                            // Comment count
                             .commentCount(
-                                    commentRepository.countByPostId(post.getId())
+                                    commentRepository.countByPostId(
+                                            post.getId()
+                                    )
                             )
+
+                            // Share count
                             .shareCount(
-                                    postRepository.countByOriginalPostId(post.getId())
+                                    postRepository.countByOriginalPostId(
+                                            post.getId()
+                                    )
                             )
 
                             .comments(comments)
 
-                            // ===== Shared Post =====
+
+                            // =================================================
+                            // SHARED POST
+                            // =================================================
 
                             .shared(post.isShared())
 
@@ -155,7 +215,9 @@ public class PostServiceImpl implements PostService {
 
                             .originalPostUser(
                                     post.getOriginalPost() != null
-                                            ? post.getOriginalPost().getUser().getFullName()
+                                            ? post.getOriginalPost()
+                                            .getUser()
+                                            .getFullName()
                                             : null
                             )
 
@@ -186,8 +248,14 @@ public class PostServiceImpl implements PostService {
                             .originalProfileImage(
                                     post.getOriginalPost() != null
                                             ? userProfileRepository
-                                            .findByUserId(post.getOriginalPost().getUser().getId())
-                                            .map(UserProfile::getProfileImage)
+                                            .findByUserId(
+                                                    post.getOriginalPost()
+                                                            .getUser()
+                                                            .getId()
+                                            )
+                                            .map(
+                                                    UserProfile::getProfileImage
+                                            )
                                             .orElse(null)
                                             : null
                             )
@@ -197,6 +265,11 @@ public class PostServiceImpl implements PostService {
                 })
                 .toList();
     }
+
+
+    // =========================================================
+    // ADD COMMENT
+    // =========================================================
 
     @Override
     public PostComment addComment(
@@ -221,6 +294,10 @@ public class PostServiceImpl implements PostService {
         return commentRepository.save(postComment);
     }
 
+
+    // =========================================================
+    // GET COMMENTS
+    // =========================================================
 
     @Override
     public List<CommentResponse> getComments(Long postId) {
@@ -248,6 +325,10 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    // =========================================================
+    // REACT TO POST
+    // =========================================================
+
     @Override
     public PostReaction reactPost(
             Long postId,
@@ -263,7 +344,10 @@ public class PostServiceImpl implements PostService {
                         new RuntimeException("User not found"));
 
         PostReaction reaction = reactionRepository
-                .findByPostIdAndUserId(postId, userId)
+                .findByPostIdAndUserId(
+                        postId,
+                        userId
+                )
                 .orElse(new PostReaction());
 
         reaction.setPost(post);
@@ -272,6 +356,11 @@ public class PostServiceImpl implements PostService {
 
         return reactionRepository.save(reaction);
     }
+
+
+    // =========================================================
+    // REMOVE REACTION
+    // =========================================================
 
     @Override
     public void removeReaction(
@@ -286,6 +375,9 @@ public class PostServiceImpl implements PostService {
     }
 
 
+    // =========================================================
+    // GET USER POSTS
+    // =========================================================
 
     @Override
     public List<PostResponse> getUserPosts(Long userId) {
@@ -295,31 +387,64 @@ public class PostServiceImpl implements PostService {
                 .stream()
                 .map(post -> {
 
+                    // -----------------------------------------
+                    // Post profile image
+                    // -----------------------------------------
+
                     String postProfileImage = userProfileRepository
                             .findByUserId(post.getUser().getId())
                             .map(UserProfile::getProfileImage)
                             .orElse(null);
+
+
+                    // -----------------------------------------
+                    // Comments
+                    // -----------------------------------------
 
                     List<CommentResponse> comments = commentRepository
                             .findByPostIdOrderByCreatedAtDesc(post.getId())
                             .stream()
                             .map(comment -> {
 
-                                String commentProfileImage = userProfileRepository
-                                        .findByUserId(comment.getUser().getId())
-                                        .map(UserProfile::getProfileImage)
-                                        .orElse(null);
+                                String commentProfileImage =
+                                        userProfileRepository
+                                                .findByUserId(
+                                                        comment.getUser().getId()
+                                                )
+                                                .map(UserProfile::getProfileImage)
+                                                .orElse(null);
 
                                 return CommentResponse.builder()
                                         .id(comment.getId())
                                         .userId(comment.getUser().getId())
-                                        .fullName(comment.getUser().getFullName())
+                                        .fullName(
+                                                comment.getUser().getFullName()
+                                        )
                                         .profileImage(commentProfileImage)
                                         .comment(comment.getComment())
                                         .createdAt(comment.getCreatedAt())
                                         .build();
+
                             })
                             .toList();
+
+
+                    // -----------------------------------------
+                    // Current user's reaction
+                    // -----------------------------------------
+
+                    String userReaction = reactionRepository
+                            .findByPostIdAndUserId(
+                                    post.getId(),
+                                    userId
+                            )
+                            .map(PostReaction::getReactionType)
+                            .orElse(null);
+
+
+                    // -----------------------------------------
+                    // Build PostResponse
+                    // -----------------------------------------
 
                     return PostResponse.builder()
 
@@ -334,21 +459,36 @@ public class PostServiceImpl implements PostService {
                             .fullName(post.getUser().getFullName())
                             .profileImage(postProfileImage)
 
+                            // Reaction count
                             .reactionCount(
-                                    reactionRepository.countByPostId(post.getId())
+                                    reactionRepository.countByPostId(
+                                            post.getId()
+                                    )
                             )
 
+                            // Current user's reaction
+                            .userReaction(userReaction)
+
+                            // Comment count
                             .commentCount(
-                                    commentRepository.countByPostId(post.getId())
+                                    commentRepository.countByPostId(
+                                            post.getId()
+                                    )
                             )
 
+                            // Share count
                             .shareCount(
-                                    postRepository.countByOriginalPostId(post.getId())
+                                    postRepository.countByOriginalPostId(
+                                            post.getId()
+                                    )
                             )
 
                             .comments(comments)
 
-                            // ===== Shared Post =====
+
+                            // =================================================
+                            // SHARED POST
+                            // =================================================
 
                             .shared(post.isShared())
 
@@ -360,7 +500,9 @@ public class PostServiceImpl implements PostService {
 
                             .originalPostUser(
                                     post.getOriginalPost() != null
-                                            ? post.getOriginalPost().getUser().getFullName()
+                                            ? post.getOriginalPost()
+                                            .getUser()
+                                            .getFullName()
                                             : null
                             )
 
@@ -391,8 +533,14 @@ public class PostServiceImpl implements PostService {
                             .originalProfileImage(
                                     post.getOriginalPost() != null
                                             ? userProfileRepository
-                                            .findByUserId(post.getOriginalPost().getUser().getId())
-                                            .map(UserProfile::getProfileImage)
+                                            .findByUserId(
+                                                    post.getOriginalPost()
+                                                            .getUser()
+                                                            .getId()
+                                            )
+                                            .map(
+                                                    UserProfile::getProfileImage
+                                            )
                                             .orElse(null)
                                             : null
                             )
@@ -403,45 +551,47 @@ public class PostServiceImpl implements PostService {
                 .toList();
     }
 
+
+    // =========================================================
+    // DELETE POST
+    // =========================================================
+
     @Override
-    public void deletePost(Long postId, Long userId) {
+    public void deletePost(
+            Long postId,
+            Long userId) {
 
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Post not found"));
 
         if (!post.getUser().getId().equals(userId)) {
-            throw new RuntimeException("You are not allowed to delete this post.");
+
+            throw new RuntimeException(
+                    "You are not allowed to delete this post."
+            );
         }
 
         postRepository.delete(post);
     }
 
 
-//    @Override
-//    public void sharePost(Long postId, Long userId) {
-//
-//        Post post = postRepository.findById(postId)
-//                .orElseThrow(() -> new RuntimeException("Post not found"));
-//
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new RuntimeException("User not found"));
-//
-//        PostShare share = PostShare.builder()
-//                .post(post)
-//                .user(user)
-//                .build();
-//
-//        postShareRepository.save(share);
-//    }
+    // =========================================================
+    // SHARE POST
+    // =========================================================
 
     @Override
-    public void sharePost(Long postId, Long userId) {
+    public void sharePost(
+            Long postId,
+            Long userId) {
 
         Post originalPost = postRepository.findById(postId)
-                .orElseThrow(() -> new RuntimeException("Post not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("Post not found"));
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() ->
+                        new RuntimeException("User not found"));
 
         Post sharedPost = Post.builder()
                 .user(user)

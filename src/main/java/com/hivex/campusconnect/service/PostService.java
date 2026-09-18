@@ -21,7 +21,10 @@ public interface PostService {
             MultipartFile image
     );
 
-    List<PostResponse> getFeed();
+//    List<PostResponse> getFeed();
+
+
+    List<PostResponse> getFeed(Long userId);
 
 
     PostComment addComment(

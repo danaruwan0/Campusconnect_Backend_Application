@@ -53,14 +53,24 @@ public class PostController {
                 )
         );
     }
+//
+//    @GetMapping("/feed")
+//    public ResponseEntity<List<PostResponse>> getFeed() {
+//
+//
+//
+//        return ResponseEntity.ok(
+//                postService.getFeed()
+//        );
+//    }
+
 
     @GetMapping("/feed")
-    public ResponseEntity<List<PostResponse>> getFeed() {
-
-
+    public ResponseEntity<List<PostResponse>> getFeed(
+            @RequestParam Long userId) {
 
         return ResponseEntity.ok(
-                postService.getFeed()
+                postService.getFeed(userId)
         );
     }
 

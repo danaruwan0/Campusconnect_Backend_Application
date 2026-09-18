@@ -25,11 +25,14 @@ public class PostResponse {
     private Long userId;
     private String fullName;
 
-    private String profileImage; // ADD
+    private String profileImage;
 
     private long reactionCount;
     private long commentCount;
     private long shareCount;
+
+    // Current logged-in user's reaction
+    private String userReaction;
 
     private List<CommentResponse> comments;
 
